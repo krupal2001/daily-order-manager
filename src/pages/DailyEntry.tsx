@@ -345,7 +345,7 @@ export const DailyEntryPage: React.FC = () => {
       </div>
 
       {/* Mobile Expandable Cards View */}
-      <div className="md:hidden space-y-3">
+      <div className="md:hidden space-y-3 pb-20">
         {filteredShopkeepers.map((sk) => (
           <MobileShopkeeperCard
             key={sk.id}
@@ -356,6 +356,25 @@ export const DailyEntryPage: React.FC = () => {
             onQuantityChange={(prodId, newQty) => handleQuantityChange(sk.id, prodId, newQty)}
           />
         ))}
+      </div>
+
+      {/* Mobile Sticky Grand Totals Summary Bar */}
+      <div className="md:hidden fixed bottom-14 left-0 right-0 z-30 bg-slate-900/95 backdrop-blur-md text-white px-4 py-2.5 shadow-2xl border-t border-slate-800 flex items-center justify-between no-print">
+        <div>
+          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Day Grand Total</span>
+          <div className="flex items-center space-x-3 text-xs font-bold mt-0.5">
+            <span>Total Qty: <strong className="text-amber-400 font-extrabold">{totalQty}</strong></span>
+            <span>Total Amt: <strong className="text-emerald-400 font-extrabold">₹{totalAmount.toLocaleString('en-IN')}</strong></span>
+          </div>
+        </div>
+
+        <button
+          onClick={handleSaveDay}
+          className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white text-xs font-extrabold shadow-md active:scale-95 transition-all"
+        >
+          <Save className="w-3.5 h-3.5" />
+          <span>Save Day</span>
+        </button>
       </div>
 
       {/* Confirmation Modals */}

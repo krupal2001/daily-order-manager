@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Shopkeeper, Product } from '../../types';
-import { ChevronDown, ChevronUp, Plus, Minus, User } from 'lucide-react';
+import { ChevronDown, ChevronUp, Plus, Minus, User, Check } from 'lucide-react';
 
 interface MobileShopkeeperCardProps {
   shopkeeper: Shopkeeper;
@@ -59,10 +59,10 @@ export const MobileShopkeeperCard: React.FC<MobileShopkeeperCardProps> = ({
 
         <div className="flex items-center space-x-3">
           <div className="text-right">
-            <div className="text-sm font-extrabold text-indigo-600 dark:text-indigo-400">
+            <div className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">
               ₹{totalAmount.toLocaleString('en-IN')}
             </div>
-            <div className="text-xs font-semibold text-slate-500">
+            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
               {totalQty} Qty
             </div>
           </div>
@@ -133,6 +133,32 @@ export const MobileShopkeeperCard: React.FC<MobileShopkeeperCardProps> = ({
               </div>
             );
           })}
+
+          {/* Shopkeeper Card Footer Summary */}
+          <div className="pt-3 mt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm">
+            <div>
+              <div className="text-xs text-slate-600 dark:text-slate-300 font-semibold">
+                Total Qty:{' '}
+                <span className="font-extrabold text-indigo-600 dark:text-indigo-400 text-sm">
+                  {totalQty} Qty
+                </span>
+              </div>
+              <div className="text-xs text-slate-600 dark:text-slate-300 font-semibold mt-0.5">
+                Total Amount:{' '}
+                <span className="font-extrabold text-emerald-600 dark:text-emerald-400 text-sm">
+                  ₹{totalAmount.toLocaleString('en-IN')}
+                </span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setExpanded(false)}
+              className="flex items-center space-x-1 px-3.5 py-2 rounded-xl bg-indigo-600 text-white text-xs font-extrabold shadow-sm hover:bg-indigo-700 active:scale-95 transition-all"
+            >
+              <Check className="w-3.5 h-3.5" />
+              <span>Done</span>
+            </button>
+          </div>
         </div>
       )}
     </div>
