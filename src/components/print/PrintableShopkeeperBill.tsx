@@ -98,9 +98,9 @@ export const PrintableShopkeeperBill: React.FC<PrintableShopkeeperBillProps> = (
         </div>
 
         {/* Printable Bill Area */}
-        <div className="p-6 sm:p-8 overflow-y-auto flex-1 bg-white text-slate-900 print-bill-container font-sans">
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1 bg-white text-slate-900 print-bill-container font-sans">
           {/* Bill Header */}
-          <div className="border-b-2 border-slate-900 pb-5 mb-5 text-center sm:text-left flex flex-col sm:flex-row justify-between items-start gap-4">
+          <div className="border-b-2 border-slate-900 pb-4 mb-4 text-center sm:text-left flex flex-col sm:flex-row justify-between items-start gap-4">
             <div>
               <h1 className="text-2xl font-black tracking-tight text-slate-900 uppercase">
                 {settings.currencyCode === 'INR' ? 'DAILY ORDER MANAGER' : 'DAILY ORDER MANAGER'}
@@ -126,7 +126,7 @@ export const PrintableShopkeeperBill: React.FC<PrintableShopkeeperBillProps> = (
           </div>
 
           {/* Shopkeeper Details Box */}
-          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 mb-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <div>
               <span className="text-[10px] font-extrabold uppercase text-slate-400 block mb-0.5">
                 Billed To (Shopkeeper)
@@ -162,7 +162,7 @@ export const PrintableShopkeeperBill: React.FC<PrintableShopkeeperBillProps> = (
               No product items ordered for this shopkeeper on selected date.
             </div>
           ) : (
-            <div className="overflow-hidden rounded-xl border border-slate-900 mb-6">
+            <div className="overflow-hidden rounded-xl border border-slate-900 mb-4">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="bg-slate-900 text-white font-extrabold uppercase tracking-wider text-[11px]">
@@ -212,7 +212,7 @@ export const PrintableShopkeeperBill: React.FC<PrintableShopkeeperBillProps> = (
           )}
 
           {/* Bill Summary & Amount Calculation */}
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-6 border-t border-slate-200 pt-5">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 border-t border-slate-200 pt-4">
             <div className="text-xs text-slate-500 space-y-1 sm:max-w-xs">
               {/* <p className="font-bold text-slate-800 uppercase text-[10px]">Payment Terms & Notes:</p>
               <p>• Goods received in good condition.</p>
@@ -240,7 +240,7 @@ export const PrintableShopkeeperBill: React.FC<PrintableShopkeeperBillProps> = (
           </div>
 
           {/* Footer Signature */}
-          <div className="mt-10 pt-6 border-t border-dashed border-slate-300 flex justify-between items-end text-xs">
+          <div className="mt-6 pt-4 border-t border-dashed border-slate-300 flex justify-between items-end text-xs">
             <div className="text-center">
               <div className="w-36 border-b border-slate-400 mb-1"></div>
               <span className="text-[10px] font-bold text-slate-500 uppercase">Shopkeeper Signature</span>
