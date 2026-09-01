@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Product, Shopkeeper, PriceMapping, DailyEntry, AppSettings, AppDataBackup } from '../types';
 import * as storage from '../services/storageService';
-import { getApplicablePrice, calculateRowTotals, getPreviousDateStr } from '../services/calculationService';
+import { getEffectiveProductPrice, calculateRowTotals, getPreviousDateStr } from '../services/calculationService';
 
 interface ToastMessage {
   id: string;
@@ -33,6 +33,10 @@ interface AppContextType {
 
   // Pricing Mapping
   updatePriceMapping: (shopkeeperId: string, productId: string, price: number | null) => void;
+  updateShopkeeperPriceMappings: (
+    shopkeeperId: string,
+    mappings: Record<string, number | null>
+  ) => void;
 
   // Daily Entry
   saveDailyEntryItem: (date: string, shopkeeperId: string, productId: string, quantity: number) => void;
@@ -138,39 +142,75 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Price Mapping
-  const updatePriceMapping = (shopkeeperId: string, productId: string, price: number | null) => {
-    let updated: PriceMapping[];
-    if (price === null || price < 0) {
-      updated = priceMappings.filter(
-        (m) => !(m.shopkeeperId === shopkeeperId && m.productId === productId)
-      );
-    } else {
-      const existingIndex = priceMappings.findIndex(
-        (m) => m.shopkeeperId === shopkeeperId && m.productId === productId
-      );
-      if (existingIndex >= 0) {
-        updated = [...priceMappings];
-        updated[existingIndex] = {
-          ...updated[existingIndex],
-          price,
-          updatedAt: new Date().toISOString(),
-        };
+  const updateShopkeeperPriceMappings = (
+    shopkeeperId: string,
+    newPricesMap: Record<string, number | null>
+  ) => {
+    let updated = [...priceMappings];
+
+    Object.entries(newPricesMap).forEach(([productId, price]) => {
+      if (price === null || price < 0) {
+        updated = updated.filter(
+          (m) => !(m.shopkeeperId === shopkeeperId && m.productId === productId)
+        );
       } else {
-        updated = [
-          ...priceMappings,
-          {
+        const existingIndex = updated.findIndex(
+          (m) => m.shopkeeperId === shopkeeperId && m.productId === productId
+        );
+        if (existingIndex >= 0) {
+          updated[existingIndex] = {
+            ...updated[existingIndex],
+            price,
+            updatedAt: new Date().toISOString(),
+          };
+        } else {
+          updated.push({
             id: `pm-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
             shopkeeperId,
             productId,
             price,
             updatedAt: new Date().toISOString(),
-          },
-        ];
+          });
+        }
       }
-    }
+    });
+
     setPriceMappings(updated);
     storage.savePriceMappings(updated);
-    showToast('Price mapping updated successfully.');
+
+    // Update existing daily entries for this shopkeeper so their price and total amount reflect updated prices
+    const updatedEntries = dailyEntries.map((entry) => {
+      if (entry.shopkeeperId !== shopkeeperId) return entry;
+      let entryChanged = false;
+      const updatedItems = entry.items.map((item) => {
+        if (newPricesMap[item.productId] !== undefined) {
+          const newEffectivePrice = getEffectiveProductPrice(item.productId, shopkeeperId, updated, products);
+          if (item.price !== newEffectivePrice) {
+            entryChanged = true;
+            return { ...item, price: newEffectivePrice };
+          }
+        }
+        return item;
+      });
+
+      if (!entryChanged) return entry;
+      const { totalQuantity, totalAmount } = calculateRowTotals(updatedItems);
+      return {
+        ...entry,
+        items: updatedItems,
+        totalQuantity,
+        totalAmount,
+        updatedAt: new Date().toISOString(),
+      };
+    });
+
+    setDailyEntries(updatedEntries);
+    storage.saveDailyEntries(updatedEntries);
+    showToast('Shopkeeper price mapping saved successfully.');
+  };
+
+  const updatePriceMapping = (shopkeeperId: string, productId: string, price: number | null) => {
+    updateShopkeeperPriceMappings(shopkeeperId, { [productId]: price });
   };
 
   // Daily Entry Item Update
@@ -183,7 +223,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const currentEntries = [...dailyEntries];
     let entry = currentEntries.find((e) => e.date === date && e.shopkeeperId === shopkeeperId);
 
-    const price = getApplicablePrice(shopkeeperId, productId, priceMappings, products);
+    const price = getEffectiveProductPrice(productId, shopkeeperId, priceMappings, products);
 
     if (!entry) {
       entry = {
@@ -205,8 +245,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           entry.items[itemIndex] = {
             ...entry.items[itemIndex],
             quantity,
-            // Keep existing transaction price if available, otherwise apply calculated price
-            price: entry.items[itemIndex].price ?? price,
+            price,
           };
         }
       } else if (quantity > 0) {
@@ -235,7 +274,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       Object.entries(productQtyMap).forEach(([productId, quantity]) => {
         if (quantity > 0) {
-          const price = getApplicablePrice(shopkeeperId, productId, priceMappings, products);
+          const price = getEffectiveProductPrice(productId, shopkeeperId, priceMappings, products);
           items.push({ productId, quantity, price });
         }
       });
@@ -313,7 +352,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const resetAll = () => {
     storage.clearAllData();
     refreshData();
-    showToast('All application data has been reset to defaults.', 'info');
+    showToast('All local storage data cleared. Application is now empty.', 'info');
   };
 
   return (
@@ -335,6 +374,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateShopkeeper,
         deleteShopkeeper,
         updatePriceMapping,
+        updateShopkeeperPriceMappings,
         saveDailyEntryItem,
         saveFullDailyEntriesForDate,
         copyPreviousDay,

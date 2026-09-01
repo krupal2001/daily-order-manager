@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Shopkeeper, Product } from '../../types';
-import { ChevronDown, ChevronUp, Plus, Minus, User, Check } from 'lucide-react';
+import { ChevronDown, ChevronUp, Plus, Minus, User, Check, Printer } from 'lucide-react';
 
 interface MobileShopkeeperCardProps {
   shopkeeper: Shopkeeper;
@@ -8,6 +8,7 @@ interface MobileShopkeeperCardProps {
   quantitiesMap: Record<string, number>; // productId -> quantity
   pricesMap: Record<string, number>; // productId -> resolved applicable price
   onQuantityChange: (productId: string, newQty: number) => void;
+  onPrintBill?: (shopkeeper: Shopkeeper) => void;
 }
 
 export const MobileShopkeeperCard: React.FC<MobileShopkeeperCardProps> = ({
@@ -16,6 +17,7 @@ export const MobileShopkeeperCard: React.FC<MobileShopkeeperCardProps> = ({
   quantitiesMap,
   pricesMap,
   onQuantityChange,
+  onPrintBill,
 }) => {
   const [expanded, setExpanded] = useState(false);
 
@@ -57,7 +59,20 @@ export const MobileShopkeeperCard: React.FC<MobileShopkeeperCardProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2">
+          {onPrintBill && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onPrintBill(shopkeeper);
+              }}
+              title={`Print Bill for ${shopkeeper.name}`}
+              className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white transition-colors cursor-pointer"
+            >
+              <Printer className="w-4 h-4" />
+            </button>
+          )}
+
           <div className="text-right">
             <div className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">
               ₹{totalAmount.toLocaleString('en-IN')}

@@ -2,6 +2,7 @@ import React from 'react';
 import { Shopkeeper, Product } from '../../types';
 import { ProductQuantityInput } from './ProductQuantityInput';
 import { DailyTotals } from './DailyTotals';
+import { Printer } from 'lucide-react';
 
 interface DailyEntryTableProps {
   shopkeepers: Shopkeeper[];
@@ -9,6 +10,7 @@ interface DailyEntryTableProps {
   entriesMap: Record<string, Record<string, number>>; // shopkeeperId -> productId -> quantity
   pricesMap: Record<string, Record<string, number>>; // shopkeeperId -> productId -> price
   onQuantityChange: (shopkeeperId: string, productId: string, newQty: number) => void;
+  onPrintBill?: (shopkeeper: Shopkeeper) => void;
 }
 
 export const DailyEntryTable: React.FC<DailyEntryTableProps> = ({
@@ -17,6 +19,7 @@ export const DailyEntryTable: React.FC<DailyEntryTableProps> = ({
   entriesMap,
   pricesMap,
   onQuantityChange,
+  onPrintBill,
 }) => {
   // Calculate column totals per product
   const productTotalsMap: Record<string, number> = {};
@@ -31,7 +34,7 @@ export const DailyEntryTable: React.FC<DailyEntryTableProps> = ({
         <thead>
           <tr className="bg-slate-900 text-white text-xs uppercase font-extrabold tracking-wider border-b border-slate-800">
             {/* Sticky Shopkeeper Header */}
-            <th className="px-4 py-4 sticky left-0 z-30 bg-slate-950 shadow-r border-r border-slate-800 min-w-[180px]">
+            <th className="px-4 py-4 sticky left-0 z-30 bg-slate-950 shadow-r border-r border-slate-800 min-w-[200px]">
               Shopkeeper Name
             </th>
 
@@ -87,11 +90,25 @@ export const DailyEntryTable: React.FC<DailyEntryTableProps> = ({
               >
                 {/* Sticky Shopkeeper Name Column */}
                 <td className="px-4 py-2.5 sticky left-0 z-20 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-r">
-                  <div className="font-bold text-slate-900 dark:text-white flex items-center justify-between">
-                    <span>{sk.name}</span>
-                    {isRowActive && (
-                      <span className="w-2 h-2 rounded-full bg-emerald-500" title="Active order"></span>
-                    )}
+                  <div className="font-bold text-slate-900 dark:text-white flex items-center justify-between gap-2">
+                    <span className="truncate">{sk.name}</span>
+                    <div className="flex items-center space-x-1.5 shrink-0">
+                      {onPrintBill && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onPrintBill(sk);
+                          }}
+                          title={`Print Bill for ${sk.name}`}
+                          className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 dark:hover:text-white transition-colors cursor-pointer"
+                        >
+                          <Printer className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      {isRowActive && (
+                        <span className="w-2 h-2 rounded-full bg-emerald-500" title="Active order"></span>
+                      )}
+                    </div>
                   </div>
                 </td>
 

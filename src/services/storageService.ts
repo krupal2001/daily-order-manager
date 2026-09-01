@@ -241,11 +241,11 @@ export function importBackup(backup: AppDataBackup): boolean {
 }
 
 export function clearAllData(): void {
-  localStorage.removeItem(KEYS.PRODUCTS);
-  localStorage.removeItem(KEYS.SHOPKEEPERS);
-  localStorage.removeItem(KEYS.PRICE_MAPPINGS);
-  localStorage.removeItem(KEYS.DAILY_ENTRIES);
-  localStorage.removeItem(KEYS.SETTINGS);
-  localStorage.removeItem(KEYS.INITIALIZED);
-  initializeStorageIfNeeded();
+  localStorage.clear();
+  localStorage.setItem(KEYS.PRODUCTS, JSON.stringify([]));
+  localStorage.setItem(KEYS.SHOPKEEPERS, JSON.stringify([]));
+  localStorage.setItem(KEYS.PRICE_MAPPINGS, JSON.stringify([]));
+  localStorage.setItem(KEYS.DAILY_ENTRIES, JSON.stringify([]));
+  localStorage.setItem(KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
+  localStorage.setItem(KEYS.INITIALIZED, 'true');
 }

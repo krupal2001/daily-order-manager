@@ -187,16 +187,16 @@ export const SettingsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Danger Zone Section */}
+      {/* Clear Local Storage Section */}
       <div className="bg-rose-50/50 dark:bg-rose-950/30 rounded-3xl border border-rose-200 dark:border-rose-900 p-6 shadow-sm space-y-4">
         <div className="flex items-center space-x-3">
           <ShieldAlert className="w-6 h-6 text-rose-600" />
           <h3 className="text-base font-extrabold text-rose-900 dark:text-rose-300">
-            Reset Application Data
+            Clear Local Storage Data
           </h3>
         </div>
         <p className="text-xs text-rose-700 dark:text-rose-400">
-          Resetting will clear all saved entries and restore initial seed data (8 products & 24 shopkeepers). Make sure to export a backup first!
+          Clearing local storage will permanently delete all products, shopkeepers, custom prices, daily entries, and settings. The application will start in a completely fresh empty state without seed data. Make sure to export a backup first!
         </p>
 
         <button
@@ -204,16 +204,16 @@ export const SettingsPage: React.FC = () => {
           className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold shadow-md transition-all"
         >
           <Trash2 className="w-4 h-4" />
-          <span>Reset All Local Storage Data</span>
+          <span>Clear Local Storage</span>
         </button>
       </div>
 
       {/* Reset Confirmation Modal */}
       <ConfirmModal
         isOpen={isResetModalOpen}
-        title="Reset All Local Storage Data?"
-        message="Are you completely sure you want to clear all shopkeeper records, price mappings, and daily entries? Storage will be re-initialized with standard default seed data."
-        confirmText="Yes, Reset Storage"
+        title="Clear All Local Storage Data?"
+        message="Are you completely sure you want to remove all seed data, shopkeepers, price mappings, and daily entries? Storage will be completely wiped and the app will reset to a clean empty state."
+        confirmText="Yes, Clear Local Storage"
         cancelText="Cancel"
         variant="danger"
         onConfirm={() => {

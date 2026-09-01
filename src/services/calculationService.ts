@@ -4,9 +4,9 @@ import { Product, Shopkeeper, PriceMapping, DailyEntry, DailyEntryItem, ProductS
  * Resolves price for a shopkeeper and product.
  * Priority: 1. Shopkeeper-specific price mapping 2. Product master default price.
  */
-export function getApplicablePrice(
-  shopkeeperId: string,
+export function getEffectiveProductPrice(
   productId: string,
+  shopkeeperId: string,
   priceMappings: PriceMapping[],
   products: Product[]
 ): number {
@@ -18,6 +18,15 @@ export function getApplicablePrice(
   }
   const product = products.find((p) => p.id === productId);
   return product ? product.defaultPrice : 0;
+}
+
+export function getApplicablePrice(
+  shopkeeperId: string,
+  productId: string,
+  priceMappings: PriceMapping[],
+  products: Product[]
+): number {
+  return getEffectiveProductPrice(productId, shopkeeperId, priceMappings, products);
 }
 
 /**

@@ -20,7 +20,7 @@ export const PrintableOrderBook: React.FC = () => {
   let grandTotalAmt = 0;
 
   return (
-    <div className="print-only p-6 font-mono text-black">
+    <div className="print-only print-only-orderbook p-6 font-mono text-black">
       {/* Printable Header */}
       <div className="flex items-center justify-between border-b-2 border-black pb-4 mb-4">
         <div>

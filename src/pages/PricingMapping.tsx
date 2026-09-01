@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext';
 import { Tag, Save, RotateCcw, CheckCircle2, User } from 'lucide-react';
 
 export const PricingMappingPage: React.FC = () => {
-  const { shopkeepers, products, priceMappings, updatePriceMapping, showToast } = useApp();
+  const { shopkeepers, products, priceMappings, updateShopkeeperPriceMappings } = useApp();
 
   const activeShopkeepers = useMemo(() => shopkeepers.filter((s) => s.active), [shopkeepers]);
   const activeProducts = useMemo(() => products.filter((p) => p.active), [products]);
@@ -47,10 +47,7 @@ export const PricingMappingPage: React.FC = () => {
 
   const handleSaveChanges = () => {
     if (!selectedSkId) return;
-    activeProducts.forEach((prod) => {
-      const price = draftPrices[prod.id];
-      updatePriceMapping(selectedSkId, prod.id, price);
-    });
+    updateShopkeeperPriceMappings(selectedSkId, draftPrices);
   };
 
   const handleResetToDefault = () => {
@@ -58,10 +55,9 @@ export const PricingMappingPage: React.FC = () => {
     const resetMap: Record<string, number | null> = {};
     activeProducts.forEach((prod) => {
       resetMap[prod.id] = null;
-      updatePriceMapping(selectedSkId, prod.id, null);
     });
     setDraftPrices(resetMap);
-    showToast(`Reset pricing for "${selectedSk?.name}" to master default prices.`, 'info');
+    updateShopkeeperPriceMappings(selectedSkId, resetMap);
   };
 
   return (
