@@ -39,6 +39,7 @@ export const DailyEntryPage: React.FC = () => {
 
   // Local draft state for current date entry grid: shopkeeperId -> productId -> quantity
   const [draftEntriesMap, setDraftEntriesMap] = useState<Record<string, Record<string, number>>>({});
+  const [draftAdjustmentsMap, setDraftAdjustmentsMap] = useState<Record<string, number>>({});
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
 
   // Search & Filter
@@ -66,11 +67,13 @@ export const DailyEntryPage: React.FC = () => {
     return map;
   }, [activeShopkeepers, activeProducts, priceMappings, products]);
 
-  // Load entries for selected date into draft state
+  // Load entries & adjustments for selected date into draft state
   useEffect(() => {
     const map: Record<string, Record<string, number>> = {};
+    const adjMap: Record<string, number> = {};
     activeShopkeepers.forEach((sk) => {
       map[sk.id] = {};
+      adjMap[sk.id] = 0;
       activeProducts.forEach((p) => {
         map[sk.id][p.id] = 0;
       });
@@ -82,10 +85,12 @@ export const DailyEntryPage: React.FC = () => {
         entry.items.forEach((item) => {
           map[entry.shopkeeperId][item.productId] = item.quantity;
         });
+        adjMap[entry.shopkeeperId] = entry.adjustment || 0;
       }
     });
 
     setDraftEntriesMap(map);
+    setDraftAdjustmentsMap(adjMap);
     setSaveStatus('saved');
   }, [selectedDate, dailyEntries, activeShopkeepers, activeProducts]);
 
@@ -102,10 +107,19 @@ export const DailyEntryPage: React.FC = () => {
     []
   );
 
+  // Handle adjustment change
+  const handleAdjustmentChange = useCallback((shopkeeperId: string, newAdj: number) => {
+    setDraftAdjustmentsMap((prev) => ({
+      ...prev,
+      [shopkeeperId]: newAdj,
+    }));
+    setSaveStatus('unsaved');
+  }, []);
+
   // Explicit Save Day
   const handleSaveDay = () => {
     setSaveStatus('saving');
-    saveFullDailyEntriesForDate(selectedDate, draftEntriesMap);
+    saveFullDailyEntriesForDate(selectedDate, draftEntriesMap, draftAdjustmentsMap);
     setTimeout(() => {
       setSaveStatus('saved');
     }, 400);
@@ -134,7 +148,7 @@ export const DailyEntryPage: React.FC = () => {
     return activeShopkeepers.filter((s) => s.name.toLowerCase().includes(query));
   }, [activeShopkeepers, searchQuery]);
 
-  // Total daily stats computation
+  // Total daily stats computation (including adjustments)
   const { totalQty, totalAmount, activeShopkeeperCount } = useMemo(() => {
     let qty = 0;
     let amt = 0;
@@ -142,21 +156,24 @@ export const DailyEntryPage: React.FC = () => {
 
     Object.entries(draftEntriesMap).forEach(([skId, pMap]) => {
       let skQty = 0;
+      let skSubtotal = 0;
       Object.entries(pMap).forEach(([pId, q]) => {
         if (q > 0) {
           skQty += q;
           const price = pricesMap[skId]?.[pId] || 0;
-          amt += q * price;
+          skSubtotal += q * price;
         }
       });
-      if (skQty > 0) {
+      const adj = draftAdjustmentsMap[skId] || 0;
+      if (skQty > 0 || adj !== 0) {
         qty += skQty;
+        amt += skSubtotal + adj;
         count++;
       }
     });
 
     return { totalQty: qty, totalAmount: amt, activeShopkeeperCount: count };
-  }, [draftEntriesMap, pricesMap]);
+  }, [draftEntriesMap, draftAdjustmentsMap, pricesMap]);
 
   const isTodaySelected = selectedDate === todayStr;
 
@@ -347,8 +364,10 @@ export const DailyEntryPage: React.FC = () => {
             shopkeepers={filteredShopkeepers}
             products={activeProducts}
             entriesMap={draftEntriesMap}
+            adjustmentsMap={draftAdjustmentsMap}
             pricesMap={pricesMap}
             onQuantityChange={handleQuantityChange}
+            onAdjustmentChange={handleAdjustmentChange}
             onPrintBill={(sk) => setPrintShopkeeper(sk)}
           />
         </div>
@@ -362,7 +381,9 @@ export const DailyEntryPage: React.FC = () => {
               products={activeProducts}
               quantitiesMap={draftEntriesMap[sk.id] || {}}
               pricesMap={pricesMap[sk.id] || {}}
+              adjustmentVal={draftAdjustmentsMap[sk.id] || 0}
               onQuantityChange={(prodId, newQty) => handleQuantityChange(sk.id, prodId, newQty)}
+              onAdjustmentChange={(newAdj) => handleAdjustmentChange(sk.id, newAdj)}
               onPrintBill={(skItem) => setPrintShopkeeper(skItem)}
             />
           ))}

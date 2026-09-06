@@ -8,8 +8,10 @@ interface DailyEntryTableProps {
   shopkeepers: Shopkeeper[];
   products: Product[];
   entriesMap: Record<string, Record<string, number>>; // shopkeeperId -> productId -> quantity
+  adjustmentsMap?: Record<string, number>; // shopkeeperId -> adjustment
   pricesMap: Record<string, Record<string, number>>; // shopkeeperId -> productId -> price
   onQuantityChange: (shopkeeperId: string, productId: string, newQty: number) => void;
+  onAdjustmentChange?: (shopkeeperId: string, newAdj: number) => void;
   onPrintBill?: (shopkeeper: Shopkeeper) => void;
 }
 
@@ -17,8 +19,10 @@ export const DailyEntryTable: React.FC<DailyEntryTableProps> = ({
   shopkeepers,
   products,
   entriesMap,
+  adjustmentsMap = {},
   pricesMap,
   onQuantityChange,
+  onAdjustmentChange,
   onPrintBill,
 }) => {
   // Calculate column totals per product
@@ -46,6 +50,11 @@ export const DailyEntryTable: React.FC<DailyEntryTableProps> = ({
               </th>
             ))}
 
+            {/* Adjustment Column Header */}
+            <th className="px-3 py-4 text-center border-r border-slate-800 min-w-[110px] text-indigo-400">
+              Adjustment (+ / -)
+            </th>
+
             {/* Total Qty Header */}
             <th className="px-4 py-4 text-center border-r border-slate-800 min-w-[100px] text-amber-400">
               Total Qty
@@ -64,22 +73,25 @@ export const DailyEntryTable: React.FC<DailyEntryTableProps> = ({
             const skPrices = pricesMap[sk.id] || {};
 
             let rowTotalQty = 0;
-            let rowTotalAmt = 0;
+            let itemsSubtotal = 0;
 
             products.forEach((p) => {
               const qty = skQuantities[p.id] || 0;
               const price = skPrices[p.id] || p.defaultPrice;
               if (qty > 0) {
                 rowTotalQty += qty;
-                rowTotalAmt += qty * price;
+                itemsSubtotal += qty * price;
                 productTotalsMap[p.id] = (productTotalsMap[p.id] || 0) + qty;
               }
             });
 
+            const skAdj = Number(adjustmentsMap[sk.id]) || 0;
+            const rowTotalAmt = itemsSubtotal + skAdj;
+
             grandTotalQty += rowTotalQty;
             grandTotalAmount += rowTotalAmt;
 
-            const isRowActive = rowTotalQty > 0;
+            const isRowActive = rowTotalQty > 0 || skAdj !== 0;
 
             return (
               <tr
@@ -129,6 +141,63 @@ export const DailyEntryTable: React.FC<DailyEntryTableProps> = ({
                   );
                 })}
 
+                {/* Adjustment Input Cell */}
+                <td className="p-1 border-r border-slate-100 dark:border-slate-800/80 text-center min-w-[130px]">
+                  {(() => {
+                    const currentAdj = adjustmentsMap[sk.id] || 0;
+                    const adjStr = currentAdj.toString();
+                    const isNeg = adjStr.startsWith('-');
+                    const absVal = Math.abs(currentAdj);
+                    const displayVal = absVal === 0 ? '' : absVal;
+
+                    return (
+                      <div className="flex items-center justify-center space-x-1">
+                        {/* Left Minus Button */}
+                        <button
+                          type="button"
+                          onClick={() => onAdjustmentChange && onAdjustmentChange(sk.id, -absVal)}
+                          className={`w-6 h-6 rounded-md font-extrabold text-xs transition-colors cursor-pointer flex items-center justify-center ${
+                            isNeg
+                              ? 'bg-rose-600 text-white shadow-sm'
+                              : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-rose-500 hover:text-white'
+                          }`}
+                          title="Subtract (-)"
+                        >
+                          -
+                        </button>
+
+                        {/* Middle Input Box */}
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={displayVal}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            onAdjustmentChange && onAdjustmentChange(sk.id, isNeg ? -val : val);
+                          }}
+                          placeholder="0.00"
+                          className="w-16 text-center py-1 px-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+
+                        {/* Right Plus Button */}
+                        <button
+                          type="button"
+                          onClick={() => onAdjustmentChange && onAdjustmentChange(sk.id, absVal)}
+                          className={`w-6 h-6 rounded-md font-extrabold text-xs transition-colors cursor-pointer flex items-center justify-center ${
+                            !isNeg
+                              ? 'bg-emerald-600 text-white shadow-sm'
+                              : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-emerald-500 hover:text-white'
+                          }`}
+                          title="Add (+)"
+                        >
+                          +
+                        </button>
+                      </div>
+                    );
+                  })()}
+                </td>
+
                 {/* Total Qty Cell */}
                 <td className="px-4 py-2.5 text-center font-extrabold text-slate-900 dark:text-white border-r border-slate-200 dark:border-slate-800">
                   <span className={rowTotalQty > 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}>
@@ -138,7 +207,7 @@ export const DailyEntryTable: React.FC<DailyEntryTableProps> = ({
 
                 {/* Total Amount Cell */}
                 <td className="px-4 py-2.5 text-right font-extrabold text-slate-900 dark:text-white sticky right-0 z-20 bg-white dark:bg-slate-900 shadow-l">
-                  <span className={rowTotalAmt > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}>
+                  <span className={rowTotalAmt > 0 ? 'text-emerald-600 dark:text-emerald-400' : (rowTotalAmt < 0 ? 'text-rose-600' : 'text-slate-400')}>
                     ₹{rowTotalAmt.toLocaleString('en-IN')}
                   </span>
                 </td>

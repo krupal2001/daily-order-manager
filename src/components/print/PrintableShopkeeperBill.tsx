@@ -9,6 +9,7 @@ interface PrintableShopkeeperBillProps {
   date: string;
   shopkeeper: Shopkeeper;
   items: { productId: string; quantity: number; price: number }[];
+  adjustment?: number;
   products: Product[];
   settings: AppSettings;
 }
@@ -19,6 +20,7 @@ export const PrintableShopkeeperBill: React.FC<PrintableShopkeeperBillProps> = (
   date,
   shopkeeper,
   items,
+  adjustment = 0,
   products,
   settings,
 }) => {
@@ -56,6 +58,9 @@ export const PrintableShopkeeperBill: React.FC<PrintableShopkeeperBillProps> = (
       amount,
     };
   });
+
+  const adjVal = Number(adjustment) || 0;
+  const netTotalAmount = subtotalAmount + adjVal;
 
   const billNumber = `BILL-${date.replace(/-/g, '')}-${shopkeeper.id.replace(/[^a-zA-Z0-9]/g, '').slice(-4).toUpperCase()}`;
   const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -166,7 +171,6 @@ export const PrintableShopkeeperBill: React.FC<PrintableShopkeeperBillProps> = (
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="bg-slate-900 text-white font-extrabold uppercase tracking-wider text-[11px]">
-                    {/* <th className="py-3 px-4 border-b border-slate-900">#</th> */}
                     <th className="py-3 px-4 border-b border-slate-900">Product Name</th>
                     <th className="py-3 px-3 text-center border-b border-slate-900">Qty</th>
                     <th className="py-3 px-4 text-right border-b border-slate-900">Rate</th>
@@ -177,7 +181,6 @@ export const PrintableShopkeeperBill: React.FC<PrintableShopkeeperBillProps> = (
                 <tbody className="divide-y divide-slate-200 font-semibold text-slate-800">
                   {lineItems.map((item, idx) => (
                     <tr key={idx} className="hover:bg-slate-50">
-                      {/* <td className="py-2.5 px-4 text-slate-400">{idx + 1}</td> */}
                       <td className="py-2.5 px-4 font-bold text-slate-900">
                         {item.name}
                         <span className="text-[10px] text-slate-400 font-normal block">Per {item.unit}</span>
@@ -200,7 +203,7 @@ export const PrintableShopkeeperBill: React.FC<PrintableShopkeeperBillProps> = (
                       {totalQuantity}
                     </td>
                     <td className="py-3 px-4 text-right uppercase text-slate-700">
-                      Subtotal
+                      Items Subtotal
                     </td>
                     <td className="py-3 px-4 text-right text-slate-900 text-sm font-black">
                       ₹{subtotalAmount.toLocaleString('en-IN')}
@@ -214,9 +217,6 @@ export const PrintableShopkeeperBill: React.FC<PrintableShopkeeperBillProps> = (
           {/* Bill Summary & Amount Calculation */}
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 border-t border-slate-200 pt-4">
             <div className="text-xs text-slate-500 space-y-1 sm:max-w-xs">
-              {/* <p className="font-bold text-slate-800 uppercase text-[10px]">Payment Terms & Notes:</p>
-              <p>• Goods received in good condition.</p>
-              <p>• Prices include effective shopkeeper rates.</p> */}
             </div>
 
             <div className="w-full sm:w-64 bg-slate-900 text-white rounded-2xl p-4 space-y-2 text-xs shadow-md">
@@ -225,16 +225,14 @@ export const PrintableShopkeeperBill: React.FC<PrintableShopkeeperBillProps> = (
                 <span className="font-bold">₹{subtotalAmount.toLocaleString('en-IN')}</span>
               </div>
               <div className="flex justify-between items-center text-slate-300 font-medium">
-                <span>Discount / Adjustment:</span>
-                <span className="font-bold">₹0</span>
+                <span>Adjustment ({adjVal >= 0 ? '+' : ''}):</span>
+                <span className={`font-bold ${adjVal > 0 ? 'text-emerald-400' : (adjVal < 0 ? 'text-rose-400' : 'text-slate-400')}`}>
+                  {adjVal > 0 ? '+' : ''}₹{adjVal.toLocaleString('en-IN')}
+                </span>
               </div>
               <div className="border-t border-slate-700 pt-2 flex justify-between items-center text-sm font-black text-white">
                 <span>NET TOTAL AMOUNT:</span>
-                <span className="text-emerald-400 text-base">₹{subtotalAmount.toLocaleString('en-IN')}</span>
-              </div>
-              <div className="border-t border-slate-800 pt-1.5 flex justify-between items-center text-[11px] text-slate-400 font-semibold">
-                <span>REMAINING / DUE:</span>
-                <span className="text-amber-400 font-bold">₹{subtotalAmount.toLocaleString('en-IN')}</span>
+                <span className="text-emerald-400 text-base">₹{netTotalAmount.toLocaleString('en-IN')}</span>
               </div>
             </div>
           </div>

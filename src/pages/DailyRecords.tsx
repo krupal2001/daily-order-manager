@@ -389,6 +389,7 @@ export const DailyRecordsPage: React.FC = () => {
                       </th>
                     ))}
                     <th className="py-3 px-3 text-center text-amber-400">Total Qty</th>
+                    <th className="py-3 px-3 text-center text-indigo-400">Adjustment</th>
                     <th className="py-3 px-4 text-right text-emerald-400">Total Amount</th>
                   </tr>
                 </thead>
@@ -414,6 +415,15 @@ export const DailyRecordsPage: React.FC = () => {
                         })}
                         <td className="py-2.5 px-3 text-center font-extrabold text-slate-900">
                           {entry.totalQuantity}
+                        </td>
+                        <td className="py-2.5 px-3 text-center font-bold text-xs">
+                          {entry.adjustment && entry.adjustment !== 0 ? (
+                            <span className={entry.adjustment > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
+                              {entry.adjustment > 0 ? '+' : ''}₹{entry.adjustment}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400">—</span>
+                          )}
                         </td>
                         <td className="py-2.5 px-4 text-right font-black text-emerald-600">
                           ₹{entry.totalAmount.toLocaleString('en-IN')}

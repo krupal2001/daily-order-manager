@@ -39,8 +39,12 @@ interface AppContextType {
   ) => void;
 
   // Daily Entry
-  saveDailyEntryItem: (date: string, shopkeeperId: string, productId: string, quantity: number) => void;
-  saveFullDailyEntriesForDate: (date: string, entriesMap: Record<string, Record<string, number>>) => void;
+  saveDailyEntryItem: (date: string, shopkeeperId: string, productId: string, quantity: number, adjustment?: number) => void;
+  saveFullDailyEntriesForDate: (
+    date: string,
+    entriesMap: Record<string, Record<string, number>>,
+    adjustmentsMap?: Record<string, number>
+  ) => void;
   copyPreviousDay: (targetDate: string) => boolean;
   clearDailyEntriesForDate: (date: string) => void;
 
@@ -218,12 +222,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     date: string,
     shopkeeperId: string,
     productId: string,
-    quantity: number
+    quantity: number,
+    adjustment?: number
   ) => {
     const currentEntries = [...dailyEntries];
     let entry = currentEntries.find((e) => e.date === date && e.shopkeeperId === shopkeeperId);
 
     const price = getEffectiveProductPrice(productId, shopkeeperId, priceMappings, products);
+    const adjVal = typeof adjustment === 'number' ? adjustment : (entry?.adjustment || 0);
 
     if (!entry) {
       entry = {
@@ -233,6 +239,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         items: [{ productId, quantity, price }],
         totalQuantity: 0,
         totalAmount: 0,
+        adjustment: adjVal,
         updatedAt: new Date().toISOString(),
       };
       currentEntries.push(entry);
@@ -251,9 +258,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       } else if (quantity > 0) {
         entry.items.push({ productId, quantity, price });
       }
+      entry.adjustment = adjVal;
     }
 
-    const { totalQuantity, totalAmount } = calculateRowTotals(entry.items);
+    const { totalQuantity, totalAmount } = calculateRowTotals(entry.items, entry.adjustment);
     entry.totalQuantity = totalQuantity;
     entry.totalAmount = totalAmount;
     entry.updatedAt = new Date().toISOString();
@@ -265,7 +273,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Batch Save Full Daily Entries for a Date
   const saveFullDailyEntriesForDate = (
     date: string,
-    entriesMap: Record<string, Record<string, number>>
+    entriesMap: Record<string, Record<string, number>>,
+    adjustmentsMap: Record<string, number> = {}
   ) => {
     let currentEntries = dailyEntries.filter((e) => e.date !== date);
 
@@ -279,8 +288,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       });
 
-      if (items.length > 0) {
-        const { totalQuantity, totalAmount } = calculateRowTotals(items);
+      const adjustment = adjustmentsMap[shopkeeperId] || 0;
+
+      if (items.length > 0 || adjustment !== 0) {
+        const { totalQuantity, totalAmount } = calculateRowTotals(items, adjustment);
         currentEntries.push({
           id: `entry-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
           date,
@@ -288,6 +299,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           items,
           totalQuantity,
           totalAmount,
+          adjustment,
           updatedAt: new Date().toISOString(),
         });
       }

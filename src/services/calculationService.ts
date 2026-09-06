@@ -30,24 +30,52 @@ export function getApplicablePrice(
 }
 
 /**
+ * Format any currency value strictly with 2 decimal places.
+ */
+export function formatCurrency(amount: number, symbol: string = '₹'): string {
+  const num = Number(amount) || 0;
+  return `${symbol} ${num.toLocaleString('en-IN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+/**
+ * Format simple decimal string to 2 decimal places (e.g. 25.5 -> 25.50)
+ */
+export function formatPrice(price: number): string {
+  const num = Number(price) || 0;
+  return num.toFixed(2);
+}
+
+/**
  * Calculates shopkeeper entry row totals.
  */
 export function calculateRowTotals(
-  items: DailyEntryItem[]
-): { totalQuantity: number; totalAmount: number } {
+  items: DailyEntryItem[],
+  adjustment: number = 0
+): { totalQuantity: number; itemsSubtotal: number; adjustment: number; totalAmount: number } {
   let totalQuantity = 0;
-  let totalAmount = 0;
+  let itemsSubtotal = 0;
 
   for (const item of items) {
     const qty = Number(item.quantity) || 0;
     const price = Number(item.price) || 0;
     if (qty > 0) {
       totalQuantity += qty;
-      totalAmount += qty * price;
+      itemsSubtotal += qty * price;
     }
   }
 
-  return { totalQuantity, totalAmount };
+  const adj = Number(adjustment) || 0;
+  const totalAmount = Number((itemsSubtotal + adj).toFixed(2));
+
+  return {
+    totalQuantity,
+    itemsSubtotal: Number(itemsSubtotal.toFixed(2)),
+    adjustment: Number(adj.toFixed(2)),
+    totalAmount,
+  };
 }
 
 /**

@@ -252,6 +252,7 @@ export const ShopkeeperDetailsPage: React.FC = () => {
                     </th>
                   ))}
                   <th className="py-3.5 px-4 text-center text-amber-400">Total Qty</th>
+                  <th className="py-3.5 px-3 text-center text-indigo-400">Adjustment</th>
                   <th className="py-3.5 px-4 text-right text-emerald-400">Total Amount</th>
                   <th className="py-3.5 px-4 text-center">Action</th>
                 </tr>
@@ -278,6 +279,16 @@ export const ShopkeeperDetailsPage: React.FC = () => {
                         {entry.totalQuantity}
                       </td>
 
+                      <td className="py-3 px-3 text-center font-bold text-xs">
+                        {entry.adjustment && entry.adjustment !== 0 ? (
+                          <span className={entry.adjustment > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
+                            {entry.adjustment > 0 ? '+' : ''}₹{entry.adjustment}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">—</span>
+                        )}
+                      </td>
+
                       <td className="py-3 px-4 text-right font-black text-emerald-600 dark:text-emerald-400">
                         ₹{entry.totalAmount.toLocaleString('en-IN')}
                       </td>
@@ -299,7 +310,7 @@ export const ShopkeeperDetailsPage: React.FC = () => {
                     {/* Breakdown details row */}
                     {selectedEntryId === entry.id && (
                       <tr className="bg-indigo-50/50 dark:bg-indigo-950/30">
-                        <td colSpan={activeProducts.length + 4} className="p-4">
+                        <td colSpan={activeProducts.length + 5} className="p-4">
                           <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-indigo-100 dark:border-slate-700 space-y-2">
                             <h4 className="text-xs font-bold uppercase text-slate-500">
                               Transaction Breakdown for {formatDisplayDate(entry.date)}
@@ -308,17 +319,24 @@ export const ShopkeeperDetailsPage: React.FC = () => {
                               {entry.items.map((item) => {
                                 const prod = products.find((p) => p.id === item.productId);
                                 return (
-                                  <div key={item.productId} className="p-2 bg-slate-50 dark:bg-slate-900 rounded-lg">
-                                    <span className="font-bold text-slate-800 dark:text-slate-200">
-                                      {prod ? prod.name : 'Product'}
-                                    </span>
-                                    <p className="text-slate-500 mt-0.5">
-                                      {item.quantity} × ₹{item.price} ={' '}
-                                      <span className="font-bold text-emerald-600">₹{item.quantity * item.price}</span>
+                                  <div key={item.productId} className="p-2 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                                    <p className="font-bold text-slate-700 dark:text-slate-200">
+                                      {prod ? prod.name : 'Item'}
+                                    </p>
+                                    <p className="text-slate-500">
+                                      {item.quantity} × ₹{item.price} = <span className="font-bold text-slate-900 dark:text-white">₹{item.quantity * item.price}</span>
                                     </p>
                                   </div>
                                 );
                               })}
+                              {entry.adjustment && entry.adjustment !== 0 ? (
+                                <div className="p-2 bg-indigo-50 dark:bg-indigo-950/40 rounded-lg">
+                                  <p className="font-bold text-slate-700 dark:text-slate-200">Adjustment</p>
+                                  <p className={entry.adjustment > 0 ? 'text-emerald-600 font-extrabold' : 'text-rose-600 font-extrabold'}>
+                                    {entry.adjustment > 0 ? '+' : ''}₹{entry.adjustment}
+                                  </p>
+                                </div>
+                              ) : null}
                             </div>
                           </div>
                         </td>

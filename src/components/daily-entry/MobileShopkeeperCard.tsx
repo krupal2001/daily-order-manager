@@ -7,7 +7,9 @@ interface MobileShopkeeperCardProps {
   products: Product[];
   quantitiesMap: Record<string, number>; // productId -> quantity
   pricesMap: Record<string, number>; // productId -> resolved applicable price
+  adjustmentVal?: number | string;
   onQuantityChange: (productId: string, newQty: number) => void;
+  onAdjustmentChange?: (newAdj: number) => void;
   onPrintBill?: (shopkeeper: Shopkeeper) => void;
 }
 
@@ -16,14 +18,16 @@ export const MobileShopkeeperCard: React.FC<MobileShopkeeperCardProps> = ({
   products,
   quantitiesMap,
   pricesMap,
+  adjustmentVal = 0,
   onQuantityChange,
+  onAdjustmentChange,
   onPrintBill,
 }) => {
   const [expanded, setExpanded] = useState(false);
 
   // Calculate shopkeeper totals
   let totalQty = 0;
-  let totalAmount = 0;
+  let itemsSubtotal = 0;
   let activeItemCount = 0;
 
   products.forEach((p) => {
@@ -31,10 +35,13 @@ export const MobileShopkeeperCard: React.FC<MobileShopkeeperCardProps> = ({
     const price = pricesMap[p.id] || p.defaultPrice;
     if (qty > 0) {
       totalQty += qty;
-      totalAmount += qty * price;
+      itemsSubtotal += qty * price;
       activeItemCount++;
     }
   });
+
+  const adjVal = Number(adjustmentVal) || 0;
+  const netTotalAmount = itemsSubtotal + adjVal;
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden transition-all duration-200">
@@ -75,7 +82,7 @@ export const MobileShopkeeperCard: React.FC<MobileShopkeeperCardProps> = ({
 
           <div className="text-right">
             <div className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">
-              ₹{totalAmount.toLocaleString('en-IN')}
+              ₹{netTotalAmount.toLocaleString('en-IN')}
             </div>
             <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
               {totalQty} Qty
@@ -149,6 +156,76 @@ export const MobileShopkeeperCard: React.FC<MobileShopkeeperCardProps> = ({
             );
           })}
 
+          {/* Adjustment Input Field */}
+          {(() => {
+            const currentAdjStr = (adjustmentVal || 0).toString();
+            const isNegative = currentAdjStr.startsWith('-');
+            const displayVal = currentAdjStr.replace('-', '');
+
+            return (
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-indigo-50/50 dark:bg-indigo-950/40 rounded-xl border border-indigo-100 dark:border-indigo-900/60 gap-2">
+                <div>
+                  <div className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                    Adjustment
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    No change / balance adjustment
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-1.5">
+                  {/* Left Minus Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const num = parseFloat(displayVal) || 0;
+                      onAdjustmentChange && onAdjustmentChange(-num);
+                    }}
+                    className={`w-8 h-8 rounded-lg font-black text-sm transition-all shadow-sm flex items-center justify-center cursor-pointer ${
+                      isNegative
+                        ? 'bg-rose-600 text-white shadow-rose-500/20 ring-2 ring-rose-600/30'
+                        : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-rose-500 hover:text-white'
+                    }`}
+                    title="Subtract (-)"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+
+                  {/* Middle Numeric Input */}
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={displayVal === '0' ? '' : displayVal}
+                    onChange={(e) => {
+                      const cleanVal = parseFloat(e.target.value) || 0;
+                      onAdjustmentChange && onAdjustmentChange(isNegative ? -cleanVal : cleanVal);
+                    }}
+                    placeholder="0.00"
+                    className="w-20 text-center py-1.5 px-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+
+                  {/* Right Plus Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const num = parseFloat(displayVal) || 0;
+                      onAdjustmentChange && onAdjustmentChange(num);
+                    }}
+                    className={`w-8 h-8 rounded-lg font-black text-sm transition-all shadow-sm flex items-center justify-center cursor-pointer ${
+                      !isNegative
+                        ? 'bg-emerald-600 text-white shadow-emerald-500/20 ring-2 ring-emerald-600/30'
+                        : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-emerald-500 hover:text-white'
+                    }`}
+                    title="Add (+)"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Shopkeeper Card Footer Summary */}
           <div className="pt-3 mt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm">
             <div>
@@ -159,9 +236,17 @@ export const MobileShopkeeperCard: React.FC<MobileShopkeeperCardProps> = ({
                 </span>
               </div>
               <div className="text-xs text-slate-600 dark:text-slate-300 font-semibold mt-0.5">
-                Total Amount:{' '}
+                Items Subtotal: ₹{itemsSubtotal.toLocaleString('en-IN')}{' '}
+                {adjVal !== 0 && (
+                  <span className={`text-xs ml-1 font-bold ${adjVal > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    ({adjVal > 0 ? '+' : ''}₹{adjVal})
+                  </span>
+                )}
+              </div>
+              <div className="text-xs text-slate-600 dark:text-slate-300 font-semibold mt-0.5">
+                Net Total:{' '}
                 <span className="font-extrabold text-emerald-600 dark:text-emerald-400 text-sm">
-                  ₹{totalAmount.toLocaleString('en-IN')}
+                  ₹{netTotalAmount.toLocaleString('en-IN')}
                 </span>
               </div>
             </div>

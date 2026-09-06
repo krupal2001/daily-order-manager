@@ -39,6 +39,7 @@ export interface DailyEntry {
   items: DailyEntryItem[];
   totalQuantity: number;
   totalAmount: number;
+  adjustment?: number;
   notes?: string;
   updatedAt: string;
 }
