@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
@@ -21,7 +21,7 @@ import { SettingsPage } from './pages/Settings';
 export const App: React.FC = () => {
   return (
     <AppProvider>
-      <BrowserRouter>
+      <HashRouter>
         <div className="min-h-screen flex bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans">
           {/* Desktop Collapsible Sidebar */}
           <Sidebar />
@@ -56,7 +56,7 @@ export const App: React.FC = () => {
           {/* Printable A4 Paper Order Book Layout */}
           <PrintableOrderBook />
         </div>
-      </BrowserRouter>
+      </HashRouter>
     </AppProvider>
   );
 };
