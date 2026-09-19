@@ -119,6 +119,23 @@ export const SettingsPage: React.FC = () => {
             </div>
           </div>
 
+          <div>
+            <label className="block text-xs font-bold uppercase text-slate-500 mb-1">
+              Global Default Printer Mode
+            </label>
+            <select
+              value={formSettings.printerPaperSize || '58mm'}
+              onChange={(e) => setFormSettings({ ...formSettings, printerPaperSize: e.target.value as '58mm' | 'standard' })}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white outline-none"
+            >
+              <option value="58mm">📱 58mm Mobile Thermal Printer (Shreyans BillPro 583 / POS-58)</option>
+              <option value="standard">📄 Standard A4 / A5 Full Sheet Printer</option>
+            </select>
+            <p className="text-[11px] text-slate-400 mt-1">
+              Sets the default format when printing invoices, order books, and logs across the entire app.
+            </p>
+          </div>
+
           <button
             type="submit"
             className="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-md transition-all"

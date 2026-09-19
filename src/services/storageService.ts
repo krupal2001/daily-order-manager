@@ -15,6 +15,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   dateFormat: 'DD/MM/YYYY',
   defaultUnit: 'unit',
   theme: 'light',
+  printerPaperSize: '58mm',
 };
 
 // Initial Seed Data

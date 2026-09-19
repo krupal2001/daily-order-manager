@@ -98,13 +98,33 @@
     break-after: avoid !important;
   }
 
+  /* 58mm Thermal Printer Mode Specific Styles */
+  body.print-mode-58mm .print-bill-container,
+  body.print-mode-58mm .print-only-orderbook {
+    width: 52mm !important;
+    max-width: 52mm !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+    color: #000000 !important;
+    background: #ffffff !important;
+  }
+
+  body.print-mode-58mm .bill-modal-card {
+    width: 52mm !important;
+    max-width: 52mm !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+  }
+
   .print-only {
     display: block !important;
   }
 
   @page {
     size: auto;
-    margin: 5mm;
+    margin: 2mm 1mm;
   }
 }
 

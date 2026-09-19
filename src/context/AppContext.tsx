@@ -77,6 +77,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     refreshData();
   }, [refreshData]);
 
+  useEffect(() => {
+    const is58mm = (settings.printerPaperSize || '58mm') === '58mm';
+    if (is58mm) {
+      document.body.classList.add('print-mode-58mm');
+    } else {
+      document.body.classList.remove('print-mode-58mm');
+    }
+  }, [settings.printerPaperSize]);
+
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
     const id = Date.now().toString();
     setToasts((prev) => [...prev, { id, type, message }]);

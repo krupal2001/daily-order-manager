@@ -50,6 +50,7 @@ export interface AppSettings {
   dateFormat: string;
   defaultUnit: string;
   theme: 'light' | 'dark' | 'system';
+  printerPaperSize?: '58mm' | 'standard';
 }
 
 export interface AppDataBackup {
